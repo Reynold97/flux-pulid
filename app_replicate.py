@@ -105,7 +105,7 @@ with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
             )            
             width = gr.Slider(256, 1536, 896, step=16, label="Width")
             height = gr.Slider(256, 1536, 1152, step=16, label="Height")            
-            num_steps = gr.Slider(1, 20, 5, step=1, label="Number of steps")            
+            num_steps = gr.Slider(1, 20, 20, step=1, label="Number of steps")            
             max_sequence_length = gr.Slider(
                 128, 512, 128, step=128, 
                 label="Max Sequence Length",                
@@ -129,4 +129,4 @@ with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(server_name="0.0.0.0", server_port=7860)
