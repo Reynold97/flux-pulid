@@ -98,32 +98,23 @@ with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
     
     with gr.Row():
         with gr.Column():
-            face_image = gr.Image(label="Face Image", type="pil", description="Upload a clear image of a face. This will be used as the base for generation.")
-            
+            face_image = gr.Image(label="Face Image", type="pil")            
             prompt = gr.Textbox(
                 label="Prompt", 
                 value="viking, realism, fantasy, dark",
-                description="Describe the image you want to generate. Be specific about style, setting, and details."
-            )
-            
-            width = gr.Slider(256, 1536, 896, step=16, label="Width", description="Width of the generated image. Larger sizes may take longer to process.")
-            height = gr.Slider(256, 1536, 1152, step=16, label="Height", description="Height of the generated image. Larger sizes may take longer to process.")
-            
-            num_steps = gr.Slider(1, 20, 5, step=1, label="Number of steps", description="More steps generally result in better quality but take longer to process.")
-            
+            )            
+            width = gr.Slider(256, 1536, 896, step=16, label="Width")
+            height = gr.Slider(256, 1536, 1152, step=16, label="Height")            
+            num_steps = gr.Slider(1, 20, 5, step=1, label="Number of steps")            
             max_sequence_length = gr.Slider(
                 128, 512, 128, step=128, 
-                label="Max Sequence Length",
-                description="Maximum length of the prompt sequence. Longer sequences allow for more detailed prompts but may be slower."
-            )
-            
+                label="Max Sequence Length",                
+            )            
             neg_prompt = gr.Textbox(
                 label="Negative Prompt",
-                value="bad quality, worst quality, text, signature, watermark, extra limbs",
-                description="Describe what you don't want in the image. This helps refine the generation process."
-            )
-            
-            quality = gr.Slider(1, 100, 100, step=1, label="Quality", description="Quality of the face swap refinement. Higher values produce better results but may be slower.")
+                value="bad quality, worst quality, text, signature, watermark, extra limbs",               
+            )            
+            quality = gr.Slider(1, 100, 100, step=1, label="Quality")
             
             submit_button = gr.Button("Generate Images")
         
