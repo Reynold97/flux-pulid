@@ -138,4 +138,4 @@ with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch(share=True)
+    demo.launch()
