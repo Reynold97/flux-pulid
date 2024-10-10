@@ -4,12 +4,34 @@ import requests
 from PIL import Image
 import io
 import os
+import logging
+from logging.handlers import RotatingFileHandler
+from datetime import datetime
+import sys
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Make sure to set your REPLICATE_API_TOKEN in your environment variables
-# os.environ["REPLICATE_API_TOKEN"] = "your-token-here"
+# Set up logging
+log_dir = os.path.dirname(os.path.abspath(__file__))
+log_file = os.path.join(log_dir, 'system_usage.log')
+
+formatter = logging.Formatter('%(asctime)s - %(message)s', datefmt='%Y-%m-%d %H:%M:%S')
+
+file_handler = logging.FileHandler(log_file)
+file_handler.setFormatter(formatter)
+
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setFormatter(formatter)
+
+logger = logging.getLogger('system_usage')
+logger.setLevel(logging.INFO)
+logger.addHandler(file_handler)
+logger.addHandler(console_handler)
+
+#print(f"Log file path: {log_file}")
+#print(f"Logging level: {logger.level}")
+#logger.info("Logging test - This should appear in the log file and console")
 
 def generate_image_pulid_flux(prompt, id_image, width, height, num_steps, neg_prompt, max_sequence_length):
     # Save the uploaded image temporarily
@@ -20,6 +42,7 @@ def generate_image_pulid_flux(prompt, id_image, width, height, num_steps, neg_pr
         output = replicate.run(
             "zsxkib/flux-pulid:8baa7ef2255075b46f4d91cd238c21d31181b3e6a864463f967960bb0112525b",
             input={
+                "seed": -1,
                 "width": width,
                 "height": height,
                 "prompt": prompt,
@@ -83,6 +106,8 @@ def process_images_storyface(face_image, model_image, quality=100):
         return None
 
 def process_all(face_image, prompt, width, height, num_steps, neg_prompt, max_sequence_length, quality):
+    logger.info("System used")
+    
     if face_image is None:
         return None, None
 
@@ -91,6 +116,7 @@ def process_all(face_image, prompt, width, height, num_steps, neg_prompt, max_se
         return None, None
 
     storyface_result = process_images_storyface(face_image, pulid_flux_result, quality)
+    
     return pulid_flux_result, storyface_result
 
 with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
@@ -129,4 +155,4 @@ with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
     )
 
 if __name__ == "__main__":
-    demo.launch(server_name="0.0.0.0", server_port=7860)
+    demo.launch(server_port=7860)
