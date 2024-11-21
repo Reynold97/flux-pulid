@@ -19,6 +19,10 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+#########################################################
+#LLAMADA A FLUX PULL-ID EN REPLICATE
+#########################################################
+
 def generate_image_pulid_flux(prompt, id_image, width, height, num_steps, neg_prompt, max_sequence_length,
                             id_weight, start_step, guidance_scale, seed, true_cfg, timestep_to_start_cfg):
     # Create a unique temporary file name
@@ -82,6 +86,10 @@ def generate_image_pulid_flux(prompt, id_image, width, height, num_steps, neg_pr
                 os.remove(temp_image_path)
         except Exception as e:
             print(f"Warning: Could not remove temporary file: {e}")
+            
+#########################################################
+#LLAMADA A STORYFACE
+#########################################################
 
 def process_images_storyface(face_image, model_image, quality=100):
     face_img_bytes = io.BytesIO()
@@ -110,6 +118,10 @@ def process_images_storyface(face_image, model_image, quality=100):
     except requests.exceptions.RequestException as e:
         print(f"Error in StoryFace processing: {str(e)}")
         return None
+
+#########################################################
+#iTERACION DE N LLAMADAS A STORYFACE
+#########################################################
     
 def iterative_face_swap(face_image, initial_model_image, refinement_steps, quality=100):
     """
@@ -125,6 +137,10 @@ def iterative_face_swap(face_image, initial_model_image, refinement_steps, quali
         current_model = result
     
     return current_model
+
+#########################################################
+#PIPELINE DE LAS 3 FUNCIONES ANTERIORES
+#########################################################
 
 def process_all(face_image, prompt, width, height, num_steps, neg_prompt, max_sequence_length, quality,
                 id_weight, start_step, guidance_scale, seed, true_cfg, timestep_to_start_cfg, face_refinement_steps):
@@ -146,11 +162,19 @@ def process_all(face_image, prompt, width, height, num_steps, neg_prompt, max_se
     storyface_result = iterative_face_swap(face_image, pulid_flux_result, face_refinement_steps, quality)
     return pulid_flux_result, storyface_result
 
+#########################################################
+#GRADIO WEBAPP
+#########################################################
+
 with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
     gr.Markdown("# Natasquad Image Generation Playground")
     
     with gr.Row():
         with gr.Column():
+            
+            #########################################################
+            #PARAMETROS DE LLAMADA A REPLICATE
+            #########################################################            
             # Basic Parameters
             gr.Markdown("### Basic Parameters")
             face_image = gr.Image(label="Face Image - Upload a clear image of a face", type="pil")
