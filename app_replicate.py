@@ -6,6 +6,7 @@ import io
 import os
 import logging
 from dotenv import load_dotenv
+import uuid
 
 load_dotenv()
 
@@ -20,12 +21,19 @@ logger = logging.getLogger(__name__)
 
 def generate_image_pulid_flux(prompt, id_image, width, height, num_steps, neg_prompt, max_sequence_length,
                             id_weight, start_step, guidance_scale, seed, true_cfg, timestep_to_start_cfg):
+    # Create a unique temporary file name
+    import uuid
+    temp_image_path = f"temp_image_{uuid.uuid4()}.png"
+    
     try:
-        # Convert PIL Image to base64
-        img_byte_arr = io.BytesIO()
-        id_image.save(img_byte_arr, format='PNG')
-        img_byte_arr = img_byte_arr.getvalue()
-        base64_image = base64.b64encode(img_byte_arr).decode('utf-8')
+        # Save the uploaded image temporarily
+        id_image.save(temp_image_path)
+        
+        # Convert seed to integer
+        try:
+            seed_value = int(seed)
+        except ValueError:
+            seed_value = -1  # Default to -1 if conversion fails
 
         output = replicate.run(
             "zsxkib/flux-pulid:8baa7ef2255075b46f4d91cd238c21d31181b3e6a864463f967960bb0112525b",
@@ -41,10 +49,10 @@ def generate_image_pulid_flux(prompt, id_image, width, height, num_steps, neg_pr
                 "output_format": "png",
                 "guidance_scale": guidance_scale,
                 "output_quality": 100,
-                "main_face_image": base64_image,  # Send base64 encoded image
+                "main_face_image": open(temp_image_path, "rb"),
                 "negative_prompt": neg_prompt,
                 "max_sequence_length": max_sequence_length,
-                "seed": seed,
+                "seed": seed_value,  # Use the converted integer value
                 "timestep_to_start_cfg": timestep_to_start_cfg
             }
         )
@@ -60,6 +68,20 @@ def generate_image_pulid_flux(prompt, id_image, width, height, num_steps, neg_pr
     except Exception as e:
         print(f"Error in PuLID-FLUX generation: {str(e)}")
         return None
+    finally:
+        # Close any open file handles before trying to remove
+        try:
+            if 'output' in locals() and hasattr(output, 'close'):
+                output.close()
+        except:
+            pass
+            
+        # Try to remove the temporary file
+        try:
+            if os.path.exists(temp_image_path):
+                os.remove(temp_image_path)
+        except Exception as e:
+            print(f"Warning: Could not remove temporary file: {e}")
 
 def process_images_storyface(face_image, model_image, quality=100):
     face_img_bytes = io.BytesIO()
