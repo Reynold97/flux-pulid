@@ -23,15 +23,14 @@ logger = logging.getLogger(__name__)
 #LLAMADA A FLUX PULL-ID EN REPLICATE
 #########################################################
 
-def generate_image_pulid_flux(prompt, id_image, width, height, num_steps, neg_prompt, max_sequence_length,
-                            id_weight, start_step, guidance_scale, seed, true_cfg, timestep_to_start_cfg):
+def generate_image_pulid_flux(face_image, prompt, width, height, neg_prompt, quality, seed, face_refinement_steps):
     # Create a unique temporary file name
     import uuid
     temp_image_path = f"temp_image_{uuid.uuid4()}.png"
     
     try:
         # Save the uploaded image temporarily
-        id_image.save(temp_image_path)
+        face_image.save(temp_image_path)
         
         # Convert seed to integer
         try:
@@ -45,19 +44,19 @@ def generate_image_pulid_flux(prompt, id_image, width, height, num_steps, neg_pr
                 "prompt": prompt, 
                 "width": width,
                 "height": height,
-                "true_cfg": true_cfg,
-                "id_weight": id_weight, # 
-                "num_steps": num_steps, 
-                "start_step": start_step,
+                "true_cfg": 1,
+                "id_weight": 1, # 
+                "num_steps": 20, 
+                "start_step": 1,
                 "num_outputs": 1,
                 "output_format": "png",
-                "guidance_scale": guidance_scale,
+                "guidance_scale": 4,
                 "output_quality": 100,
                 "main_face_image": open(temp_image_path, "rb"),
                 "negative_prompt": neg_prompt,
-                "max_sequence_length": max_sequence_length,
+                "max_sequence_length": 128,
                 "seed": seed_value,  # Use the converted integer value
-                "timestep_to_start_cfg": timestep_to_start_cfg
+                "timestep_to_start_cfg": 1
             }
         )
         
@@ -142,8 +141,7 @@ def iterative_face_swap(face_image, initial_model_image, refinement_steps, quali
 #PIPELINE DE LAS 3 FUNCIONES ANTERIORES
 #########################################################
 
-def process_all(face_image, prompt, width, height, num_steps, neg_prompt, max_sequence_length, quality,
-                id_weight, start_step, guidance_scale, seed, true_cfg, timestep_to_start_cfg, face_refinement_steps):
+def process_all(face_image, prompt, width, height, neg_prompt, quality, seed, face_refinement_steps):
     logger.info("System used")
     
     if face_image is None:
@@ -151,8 +149,7 @@ def process_all(face_image, prompt, width, height, num_steps, neg_prompt, max_se
 
     # Generate initial image with PuLID-FLUX
     pulid_flux_result = generate_image_pulid_flux(
-        prompt, face_image, width, height, num_steps, neg_prompt, max_sequence_length,
-        id_weight, start_step, guidance_scale, seed, true_cfg, timestep_to_start_cfg
+        face_image, prompt, width, height, neg_prompt, quality, seed, face_refinement_steps
     )
     
     if pulid_flux_result is None:
@@ -204,41 +201,6 @@ with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
             width = gr.Slider(minimum=256, maximum=1536, value=896, step=16, label="Width")
             height = gr.Slider(minimum=256, maximum=1536, value=1152, step=16, label="Height")
             
-            # Generation Parameters
-            gr.Markdown("### Generation Parameters")
-            id_weight = gr.Slider(
-                minimum=0.0, maximum=3.0, value=1, step=0.05,
-                label="ID Weight - Controls how much the generated image resembles the input face"
-            )
-            num_steps = gr.Slider(
-                minimum=1, maximum=20, value=20, step=1,
-                label="Number of Steps - More steps generally result in better quality"
-            )
-            start_step = gr.Slider(
-                minimum=0, maximum=10, value=0, step=1,
-                label="Start Step - Timestep to start inserting ID"
-            )
-            guidance_scale = gr.Slider(
-                minimum=1.0, maximum=10.0, value=4, step=0.1,
-                label="Guidance Scale - Controls how closely the image follows the prompt"
-            )
-                
-            # Advanced Parameters
-            with gr.Accordion("Advanced Options", open=False):                
-                max_sequence_length = gr.Slider(
-                    minimum=128, maximum=512, value=128, step=128,
-                    label="Max Sequence Length - Longer sequences allow for more detailed prompts but may be slower"
-                )               
-                true_cfg = gr.Slider(
-                    minimum=1.0, maximum=10.0, value=1, step=0.1,
-                    label="True CFG Scale - Advanced CFG control (>1 means use true CFG)"
-                )
-                timestep_to_start_cfg = gr.Slider(
-                    minimum=0, maximum=20, value=1, step=1,
-                    label="Timestep to Start CFG"
-                )             
-            
-            
             submit_button = gr.Button("Generate Images")
         
         with gr.Column():            
@@ -248,8 +210,7 @@ with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
     submit_button.click(
         process_all,
         inputs=[
-            face_image, prompt, width, height, num_steps, neg_prompt, max_sequence_length, quality,
-            id_weight, start_step, guidance_scale, seed, true_cfg, timestep_to_start_cfg, face_refinement_steps
+            face_image, prompt, width, height, neg_prompt, quality, seed, face_refinement_steps
         ],
         outputs=[output_pulid_flux, output_storyface]
     )
