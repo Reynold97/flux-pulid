@@ -162,8 +162,11 @@ def process_all(face_image, prompt, width, height, neg_prompt, quality, seed, fa
 #########################################################
 #GRADIO WEBAPP
 #########################################################
+custom_css = """
+footer {display: none !important;}
+"""
 
-with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
+with gr.Blocks(title="Natasquad Image Generation Playground", css=custom_css) as demo:
     gr.Markdown("# Natasquad Image Generation Playground")
     
     with gr.Row():
