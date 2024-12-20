@@ -256,4 +256,4 @@ with gr.Blocks(title="Natasquad Image Generation Playground") as demo:
 
 if __name__ == "__main__":
     demo.show_api = False
-    demo.launch(server_port=7860)
+    demo.launch(server_port=7880)
